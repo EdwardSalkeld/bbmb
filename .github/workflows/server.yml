@@ -1,0 +1,51 @@
+name: Server Tests
+
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - '.github/workflows/server.yml'
+  push:
+    branches:
+      - main
+      - alpha
+    paths:
+      - 'server/**'
+      - '.github/workflows/server.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Build
+      working-directory: ./server
+      run: go build -v .
+
+    - name: Run tests
+      working-directory: ./server
+      run: go test -v -coverprofile=coverage.out ./...
+
+    - name: Display coverage
+      working-directory: ./server
+      run: go tool cover -func=coverage.out
+
+    - name: Check formatting
+      working-directory: ./server
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Go files are not formatted:"
+          gofmt -s -l .
+          exit 1
+        fi
+
+    - name: Run go vet
+      working-directory: ./server
+      run: go vet ./...

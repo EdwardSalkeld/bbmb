@@ -1,0 +1,53 @@
+name: Python Client Tests
+
+on:
+  pull_request:
+    paths:
+      - 'python-client/**'
+      - '.github/workflows/python-client.yml'
+  push:
+    branches:
+      - main
+      - alpha
+    paths:
+      - 'python-client/**'
+      - '.github/workflows/python-client.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      working-directory: ./python-client
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Check formatting with black
+      working-directory: ./python-client
+      run: |
+        pip install black
+        black --check .
+
+    - name: Type check with mypy
+      working-directory: ./python-client
+      run: |
+        pip install mypy
+        mypy bbmb_client --ignore-missing-imports || true
+
+    - name: Lint with ruff
+      working-directory: ./python-client
+      run: |
+        pip install ruff
+        ruff check . || true
