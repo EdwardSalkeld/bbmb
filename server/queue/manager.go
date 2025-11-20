@@ -6,14 +6,19 @@ import (
 )
 
 type Manager struct {
-	queues map[string]*Queue
-	mu     sync.RWMutex
+	queues          map[string]*Queue
+	mu              sync.RWMutex
+	timeoutCallback func(int)
 }
 
 func NewManager() *Manager {
 	return &Manager{
 		queues: make(map[string]*Queue),
 	}
+}
+
+func (m *Manager) SetTimeoutCallback(cb func(int)) {
+	m.timeoutCallback = cb
 }
 
 func (m *Manager) EnsureQueue(name string) {
@@ -50,8 +55,14 @@ func (m *Manager) StartTimeoutScanner(interval time.Duration) {
 			}
 			m.mu.RUnlock()
 
+			totalTimedOut := 0
 			for _, q := range queues {
-				q.RequeueTimedOut()
+				count := q.RequeueTimedOut()
+				totalTimedOut += count
+			}
+
+			if totalTimedOut > 0 && m.timeoutCallback != nil {
+				m.timeoutCallback(totalTimedOut)
 			}
 		}
 	}()

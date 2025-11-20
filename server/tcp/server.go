@@ -7,19 +7,22 @@ import (
 	"log"
 	"net"
 
+	"github.com/edsalkeld/bbmb/server/metrics"
 	"github.com/edsalkeld/bbmb/server/protocol"
 	"github.com/edsalkeld/bbmb/server/queue"
 )
 
 type Server struct {
-	address string
-	manager *queue.Manager
+	address   string
+	manager   *queue.Manager
+	collector *metrics.Collector
 }
 
-func NewServer(address string, manager *queue.Manager) *Server {
+func NewServer(address string, manager *queue.Manager, collector *metrics.Collector) *Server {
 	return &Server{
-		address: address,
-		manager: manager,
+		address:   address,
+		manager:   manager,
+		collector: collector,
 	}
 }
 
@@ -43,7 +46,11 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	defer conn.Close()
+	s.collector.IncrActiveConnections()
+	defer func() {
+		s.collector.DecrActiveConnections()
+		conn.Close()
+	}()
 
 	for {
 		cmdType, payload, err := protocol.ReadFrame(conn)
@@ -129,6 +136,7 @@ func (s *Server) handleAddMessage(payload []byte) []byte {
 	}
 
 	q.Add(msg)
+	s.collector.IncrMessagesAdded()
 
 	return protocol.EncodeAddMessageResponse(&protocol.AddMessageResponse{
 		Status: protocol.StatusOK,
@@ -162,6 +170,8 @@ func (s *Server) handlePickupMessage(payload []byte) []byte {
 			Status: protocol.StatusInternalError,
 		})
 	}
+
+	s.collector.IncrMessagesPickedUp()
 
 	return protocol.EncodePickupMessageResponse(&protocol.PickupMessageResponse{
 		Status:   protocol.StatusOK,
@@ -197,6 +207,8 @@ func (s *Server) handleDeleteMessage(payload []byte) []byte {
 			Status: protocol.StatusInternalError,
 		})
 	}
+
+	s.collector.IncrMessagesDeleted()
 
 	return protocol.EncodeDeleteMessageResponse(&protocol.DeleteMessageResponse{
 		Status: protocol.StatusOK,
