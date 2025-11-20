@@ -19,11 +19,11 @@ A TCP-based message broker with FIFO queues, written in Go with client implement
 
 ## Implementation Phases
 
-### Phase 1: Core Server Infrastructure
+### Phase 1: Core Server Infrastructure ✅
 
-#### 1.1 Project Setup
-- [ ] Initialize Go module (`bbmb-server`)
-- [ ] Set up project structure:
+#### 1.1 Project Setup ✅
+- [x] Initialize Go module (`bbmb-server`)
+- [x] Set up project structure:
   ```
   bbmb/
   ├── server/
@@ -50,19 +50,19 @@ A TCP-based message broker with FIFO queues, written in Go with client implement
       └── cli.py
   ```
 
-#### 1.2 Message & Queue Data Structures
-- [ ] Define Message struct:
+#### 1.2 Message & Queue Data Structures ✅
+- [x] Define Message struct:
   - GUID (generated on add)
   - Content (arbitrary text)
   - Checksum (for verification)
   - Timeout timestamp (when picked up)
   - State (available/picked_up)
-- [ ] Implement FIFO Queue:
+- [x] Implement FIFO Queue:
   - Thread-safe queue operations
   - Lock-based or channel-based synchronization
   - Support for marking messages as "picked up"
   - Timeout-based requeue mechanism
-- [ ] Implement Queue Manager:
+- [x] Implement Queue Manager:
   - Map of queue name -> Queue
   - Ensure queue exists operation
   - Retrieve queue by name
@@ -93,23 +93,23 @@ Define binary protocol over TCP (length-prefixed frames):
    - Request: `[queue_name_length][queue_name][guid_length][guid]`
    - Response: `[status: 0x00=success, 0x01=not_found]`
 
-#### 1.4 TCP Server
-- [ ] Create TCP listener on hardcoded port (9876)
-- [ ] Handle concurrent connections (goroutine per connection)
-- [ ] Implement protocol codec (encode/decode)
-- [ ] Wire up command handlers to queue manager
-- [ ] Add graceful shutdown handling
+#### 1.4 TCP Server ✅
+- [x] Create TCP listener on hardcoded port (9876)
+- [x] Handle concurrent connections (goroutine per connection)
+- [x] Implement protocol codec (encode/decode)
+- [x] Wire up command handlers to queue manager
+- [x] Add graceful shutdown handling
 
-#### 1.5 Timeout Requeue Mechanism
-- [ ] Background goroutine that periodically scans for timed-out messages
-- [ ] Return timed-out messages to "available" state
-- [ ] Consider using a priority queue or sorted structure for efficiency
+#### 1.5 Timeout Requeue Mechanism ✅
+- [x] Background goroutine that periodically scans for timed-out messages
+- [x] Return timed-out messages to "available" state
+- [x] Consider using a priority queue or sorted structure for efficiency
 
-### Phase 2: Observability
+### Phase 2: Observability ✅
 
-#### 2.1 Prometheus Metrics
-- [ ] Set up HTTP server for metrics endpoint (e.g., port 9877)
-- [ ] Implement metrics:
+#### 2.1 Prometheus Metrics ✅
+- [x] Set up HTTP server for metrics endpoint (e.g., port 9877)
+- [x] Implement metrics:
   - **Global:**
     - Total messages added
     - Total messages picked up
@@ -126,57 +126,57 @@ Define binary protocol over TCP (length-prefixed frames):
     - Messages deleted (counter)
     - Messages timed out (counter)
 
-### Phase 3: Go Client
+### Phase 3: Go Client ✅
 
-#### 3.1 Go Client Library
-- [ ] Initialize Go module (`bbmb-client-go`)
-- [ ] Implement client struct with connection pool
-- [ ] Implement protocol encoding/decoding (share with server if possible)
-- [ ] Implement API methods:
+#### 3.1 Go Client Library ✅
+- [x] Initialize Go module (`bbmb-client-go`)
+- [x] Implement client struct with connection pool
+- [x] Implement protocol encoding/decoding (share with server if possible)
+- [x] Implement API methods:
   - `EnsureQueue(queueName string) error`
   - `AddMessage(queueName, content, checksum string) (guid string, error)`
   - `PickupMessage(queueName string, timeout int) (guid, content, checksum string, error)`
   - `DeleteMessage(queueName, guid string) error`
-- [ ] Connection management (connect, reconnect, close)
-- [ ] Error handling
+- [x] Connection management (connect, reconnect, close)
+- [x] Error handling
 
-#### 3.2 Go CLI Wrapper
-- [ ] Create CLI using standard `flag` package (avoid cobra/etc)
-- [ ] Commands:
+#### 3.2 Go CLI Wrapper ✅
+- [x] Create CLI using standard `flag` package (avoid cobra/etc)
+- [x] Commands:
   - `ensure-queue --queue=<name>`
-  - `add --queue=<name> --content=<text> --checksum=<sum>`
+  - `add --queue=<name> --content=<text>`
   - `pickup --queue=<name> --timeout=<seconds>`
   - `delete --queue=<name> --guid=<id>`
-- [ ] Support server address as flag (default to localhost:9876)
+- [x] Support server address as flag (default to localhost:9876)
 
-### Phase 4: Python Client
+### Phase 4: Python Client ✅
 
-#### 4.1 Python Client Library
-- [ ] Create package structure with `setup.py` or `pyproject.toml`
-- [ ] Implement client class
-- [ ] Implement protocol encoding/decoding
-- [ ] Implement API methods:
+#### 4.1 Python Client Library ✅
+- [x] Create package structure with `setup.py` or `pyproject.toml`
+- [x] Implement client class
+- [x] Implement protocol encoding/decoding
+- [x] Implement API methods:
   - `ensure_queue(queue_name: str) -> None`
-  - `add_message(queue_name: str, content: str, checksum: str) -> str`
-  - `pickup_message(queue_name: str, timeout: int) -> tuple[str, str, str]`
-  - `delete_message(queue_name: str, guid: str) -> bool`
-- [ ] Connection management
-- [ ] Error handling and exceptions
+  - `add_message(queue_name: str, content: str) -> str`
+  - `pickup_message(queue_name: str, timeout: int) -> Message`
+  - `delete_message(queue_name: str, guid: str) -> None`
+- [x] Connection management
+- [x] Error handling and exceptions
 
-#### 4.2 Python CLI Wrapper
-- [ ] Create CLI using `argparse` (avoid click/etc)
-- [ ] Same commands as Go CLI
-- [ ] Entry point script
+#### 4.2 Python CLI Wrapper ✅
+- [x] Create CLI using `argparse` (avoid click/etc)
+- [x] Same commands as Go CLI
+- [x] Entry point script
 
-### Phase 5: Testing
+### Phase 5: Testing ✅
 
-#### 5.1 Server Tests
-- [ ] Unit tests for queue operations
-- [ ] Unit tests for message lifecycle (add, pickup, delete, timeout)
-- [ ] Unit tests for protocol encoding/decoding
-- [ ] Integration tests for TCP server
-- [ ] Test concurrent access to queues
-- [ ] Test timeout requeue mechanism
+#### 5.1 Server Tests ✅
+- [x] Unit tests for queue operations
+- [x] Unit tests for message lifecycle (add, pickup, delete, timeout)
+- [x] Unit tests for protocol encoding/decoding
+- [x] Integration tests for TCP server
+- [x] Test concurrent access to queues
+- [x] Test timeout requeue mechanism
 - [ ] Throughput/benchmark tests:
   - Messages per second (single queue)
   - Messages per second (multiple queues)
@@ -192,32 +192,32 @@ Define binary protocol over TCP (length-prefixed frames):
 - [ ] Integration tests against running server
 - [ ] CLI tests
 
-### Phase 6: CI/CD
+### Phase 6: CI/CD ✅
 
-#### 6.1 GitHub Workflows
-- [ ] **Server workflow:**
+#### 6.1 GitHub Workflows ✅
+- [x] **Server workflow:**
   - Run tests on PR
   - Check Go formatting/linting
   - Run benchmarks
-- [ ] **Go client workflow:**
+- [x] **Go client workflow:**
   - Run tests on PR
   - Check Go formatting/linting
-- [ ] **Python client workflow:**
+- [x] **Python client workflow:**
   - Run tests on PR
   - Check Python formatting (black/ruff)
   - Type checking (mypy)
 
-### Phase 7: Documentation
+### Phase 7: Documentation ✅
 
-- [ ] README.md for main project
-- [ ] Protocol specification document
-- [ ] Server README with:
+- [x] README.md for main project
+- [x] Protocol specification document (in README)
+- [x] Server documentation with:
   - How to run
   - Metrics documentation
-- [ ] Go client README with:
+- [x] Go client documentation with:
   - Installation
   - Usage examples (library + CLI)
-- [ ] Python client README with:
+- [x] Python client documentation with:
   - Installation
   - Usage examples (library + CLI)
 
