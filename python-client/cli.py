@@ -14,17 +14,19 @@ Commands:
   ensure-queue  Ensure a queue exists
   add           Add a message to a queue
   pickup        Pick up a message from a queue
+  consume       Pick up and delete a message (pickup + delete)
   delete        Delete a message from a queue
 
 Examples:
   %(prog)s ensure-queue --queue myqueue
   %(prog)s add --queue myqueue --content "hello world"
   %(prog)s pickup --queue myqueue --timeout 30
+  %(prog)s consume --queue myqueue --timeout 30
   %(prog)s delete --queue myqueue --guid <message-id>
         """
     )
 
-    parser.add_argument("command", choices=["ensure-queue", "add", "pickup", "delete"],
+    parser.add_argument("command", choices=["ensure-queue", "add", "pickup", "consume", "delete"],
                         help="Command to execute")
     parser.add_argument("--server", default="localhost:9876",
                         help="Server address (default: localhost:9876)")
@@ -60,6 +62,17 @@ Examples:
                     print(f"GUID: {msg.guid}")
                     print(f"Content: {msg.content}")
                     print(f"Checksum: {msg.checksum}")
+                except QueueEmptyError:
+                    print("Queue is empty")
+
+            elif args.command == "consume":
+                try:
+                    msg = client.pickup_message(args.queue, args.timeout)
+                    print(f"GUID: {msg.guid}")
+                    print(f"Content: {msg.content}")
+                    print(f"Checksum: {msg.checksum}")
+                    client.delete_message(args.queue, msg.guid)
+                    print("Message consumed (deleted)")
                 except QueueEmptyError:
                     print("Queue is empty")
 

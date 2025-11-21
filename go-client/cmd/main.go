@@ -106,6 +106,48 @@ func main() {
 		fmt.Printf("Content: %s\n", msg.Content)
 		fmt.Printf("Checksum: %s\n", msg.Checksum)
 
+	case "consume":
+		fs := flag.NewFlagSet("consume", flag.ExitOnError)
+		fs.StringVar(&queueName, "queue", "", "Queue name (required)")
+		timeoutStr := fs.String("timeout", "30", "Timeout in seconds")
+		fs.StringVar(serverAddr, "server", "localhost:9876", "Server address")
+		fs.Parse(os.Args[2:])
+
+		if queueName == "" {
+			log.Fatal("--queue is required")
+		}
+
+		var err error
+		timeoutSeconds, err = strconv.Atoi(*timeoutStr)
+		if err != nil {
+			log.Fatalf("Invalid timeout value: %v", err)
+		}
+
+		c := client.NewClient(*serverAddr)
+		if err := c.Connect(); err != nil {
+			log.Fatalf("Failed to connect: %v", err)
+		}
+		defer c.Close()
+
+		msg, err := c.PickupMessage(queueName, timeoutSeconds)
+		if err == client.ErrQueueEmpty {
+			fmt.Println("Queue is empty")
+			os.Exit(0)
+		}
+		if err != nil {
+			log.Fatalf("Failed to pickup message: %v", err)
+		}
+
+		fmt.Printf("GUID: %s\n", msg.GUID)
+		fmt.Printf("Content: %s\n", msg.Content)
+		fmt.Printf("Checksum: %s\n", msg.Checksum)
+
+		if err := c.DeleteMessage(queueName, msg.GUID); err != nil {
+			log.Fatalf("Failed to delete message: %v", err)
+		}
+
+		fmt.Println("Message consumed (deleted)")
+
 	case "delete":
 		fs := flag.NewFlagSet("delete", flag.ExitOnError)
 		fs.StringVar(&queueName, "queue", "", "Queue name (required)")
@@ -143,6 +185,7 @@ func printUsage() {
 	fmt.Println("  ensure-queue  --queue=<name> [--server=<addr>]")
 	fmt.Println("  add           --queue=<name> --content=<text> [--server=<addr>]")
 	fmt.Println("  pickup        --queue=<name> [--timeout=<seconds>] [--server=<addr>]")
+	fmt.Println("  consume       --queue=<name> [--timeout=<seconds>] [--server=<addr>]  (pickup + delete)")
 	fmt.Println("  delete        --queue=<name> --guid=<id> [--server=<addr>]")
 	fmt.Println()
 	fmt.Println("Default server: localhost:9876")
