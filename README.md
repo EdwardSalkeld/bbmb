@@ -163,6 +163,38 @@ python-client/
 - **Non-blocking pickup** - returns immediately if queue empty
 - **SHA256 checksums** validated by server
 
+## Run With systemd
+
+Use the included unit file at `deploy/systemd/bbmb.service`.
+
+```bash
+# Build and install the server binary
+cd server
+go build -o bbmb-server .
+sudo install -m 0755 bbmb-server /usr/local/bin/bbmb-server
+
+# Create runtime user and state directory
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin bbmb || true
+sudo mkdir -p /var/lib/bbmb /etc/bbmb
+sudo chown -R bbmb:bbmb /var/lib/bbmb
+
+# Install unit and optional env file
+sudo install -m 0644 ../deploy/systemd/bbmb.service /etc/systemd/system/bbmb.service
+sudo install -m 0644 ../deploy/systemd/bbmb.env.example /etc/bbmb/bbmb.env
+
+# Enable + start
+sudo systemctl daemon-reload
+sudo systemctl enable --now bbmb
+
+# Verify
+sudo systemctl status bbmb
+journalctl -u bbmb -f
+```
+
+The service binds to:
+- TCP `:9876` for broker traffic
+- HTTP `:9877` for Prometheus metrics
+
 ## Testing
 
 ```bash

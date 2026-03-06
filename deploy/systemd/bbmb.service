@@ -1,0 +1,24 @@
+[Unit]
+Description=BBMB Message Broker
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=bbmb
+Group=bbmb
+WorkingDirectory=/var/lib/bbmb
+EnvironmentFile=-/etc/bbmb/bbmb.env
+ExecStart=/usr/local/bin/bbmb-server
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/bbmb
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
