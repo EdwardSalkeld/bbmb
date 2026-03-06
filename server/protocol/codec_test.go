@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"bytes"
+	"io"
 	"testing"
 )
 
@@ -130,6 +131,17 @@ func TestMessageTooLarge(t *testing.T) {
 	_, _, err := ReadFrame(&buf)
 	if err != ErrMessageTooLarge {
 		t.Errorf("Expected ErrMessageTooLarge, got %v", err)
+	}
+}
+
+func TestReadFrameRejectsZeroLength(t *testing.T) {
+	var buf bytes.Buffer
+	buf.Write([]byte{0, 0, 0, 0})
+	buf.WriteByte(byte(CmdAddMessage))
+
+	_, _, err := ReadFrame(&buf)
+	if err != io.ErrUnexpectedEOF {
+		t.Fatalf("expected io.ErrUnexpectedEOF, got %v", err)
 	}
 }
 

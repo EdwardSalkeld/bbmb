@@ -17,6 +17,10 @@ func ReadFrame(r io.Reader) (CommandType, []byte, error) {
 		return 0, nil, err
 	}
 
+	if length < 1 {
+		return 0, nil, io.ErrUnexpectedEOF
+	}
+
 	if length > MaxMessageSize+1024 {
 		return 0, nil, ErrMessageTooLarge
 	}

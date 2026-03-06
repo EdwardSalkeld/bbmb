@@ -51,6 +51,10 @@ func readFrame(r io.Reader) (CommandType, []byte, error) {
 		return 0, nil, err
 	}
 
+	if length < 1 {
+		return 0, nil, io.ErrUnexpectedEOF
+	}
+
 	var cmdType CommandType
 	if err := binary.Read(r, binary.BigEndian, &cmdType); err != nil {
 		return 0, nil, err

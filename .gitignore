@@ -1,0 +1,16 @@
+# Build artifacts
+/go-client/bbmb-client
+/server/bbmb-server
+/server/server
+/server/coverage.out
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# Local tooling
+.claude/

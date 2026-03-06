@@ -14,12 +14,12 @@ const (
 )
 
 type Message struct {
-	ID             string
-	Content        string
-	Checksum       string
-	State          MessageState
-	TimeoutAt      time.Time
-	OriginalIndex  int
+	ID            string
+	Content       string
+	Checksum      string
+	State         MessageState
+	TimeoutAt     time.Time
+	OriginalIndex int
 }
 
 func NewMessage(content, checksum string) (*Message, error) {

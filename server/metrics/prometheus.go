@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -12,12 +13,12 @@ import (
 )
 
 type Collector struct {
-	manager        *queue.Manager
-	startTime      time.Time
-	messagesAdded  atomic.Uint64
-	messagesPickedUp atomic.Uint64
-	messagesDeleted atomic.Uint64
-	messagesTimedOut atomic.Uint64
+	manager           *queue.Manager
+	startTime         time.Time
+	messagesAdded     atomic.Uint64
+	messagesPickedUp  atomic.Uint64
+	messagesDeleted   atomic.Uint64
+	messagesTimedOut  atomic.Uint64
 	activeConnections atomic.Int32
 }
 
@@ -101,19 +102,28 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "bbmb_active_connections %d\n", c.activeConnections.Load())
 
 	queues := c.manager.GetAllQueues()
+	fmt.Fprintf(w, "# HELP bbmb_queue_messages_total Total messages in queue\n")
+	fmt.Fprintf(w, "# TYPE bbmb_queue_messages_total gauge\n")
+	fmt.Fprintf(w, "# HELP bbmb_queue_messages_available Available messages in queue\n")
+	fmt.Fprintf(w, "# TYPE bbmb_queue_messages_available gauge\n")
 	for _, q := range queues {
-		queueName := q.Name()
+		queueName := escapeLabelValue(q.Name())
 		size := q.Size()
 		available := q.AvailableCount()
 
-		fmt.Fprintf(w, "# HELP bbmb_queue_messages_total Total messages in queue\n")
-		fmt.Fprintf(w, "# TYPE bbmb_queue_messages_total gauge\n")
 		fmt.Fprintf(w, "bbmb_queue_messages_total{queue=\"%s\"} %d\n", queueName, size)
 
-		fmt.Fprintf(w, "# HELP bbmb_queue_messages_available Available messages in queue\n")
-		fmt.Fprintf(w, "# TYPE bbmb_queue_messages_available gauge\n")
 		fmt.Fprintf(w, "bbmb_queue_messages_available{queue=\"%s\"} %d\n", queueName, available)
 	}
+}
+
+func escapeLabelValue(value string) string {
+	replacer := strings.NewReplacer(
+		"\\", "\\\\",
+		"\n", "\\n",
+		"\"", "\\\"",
+	)
+	return replacer.Replace(value)
 }
 
 func (c *Collector) StartServer(address string) {

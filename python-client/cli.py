@@ -23,18 +23,28 @@ Examples:
   %(prog)s pickup --queue myqueue --timeout 30
   %(prog)s consume --queue myqueue --timeout 30
   %(prog)s delete --queue myqueue --guid <message-id>
-        """
+        """,
     )
 
-    parser.add_argument("command", choices=["ensure-queue", "add", "pickup", "consume", "delete"],
-                        help="Command to execute")
-    parser.add_argument("--server", default="localhost:9876",
-                        help="Server address (default: localhost:9876)")
+    parser.add_argument(
+        "command",
+        choices=["ensure-queue", "add", "pickup", "consume", "delete"],
+        help="Command to execute",
+    )
+    parser.add_argument(
+        "--server",
+        default="localhost:9876",
+        help="Server address (default: localhost:9876)",
+    )
     parser.add_argument("--queue", help="Queue name (required)")
     parser.add_argument("--content", help="Message content (for add command)")
     parser.add_argument("--guid", help="Message GUID (for delete command)")
-    parser.add_argument("--timeout", type=int, default=30,
-                        help="Timeout in seconds (for pickup command, default: 30)")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        help="Timeout in seconds (for pickup command, default: 30)",
+    )
 
     args = parser.parse_args()
 
@@ -50,7 +60,9 @@ Examples:
 
             elif args.command == "add":
                 if not args.content:
-                    print("Error: --content is required for add command", file=sys.stderr)
+                    print(
+                        "Error: --content is required for add command", file=sys.stderr
+                    )
                     sys.exit(1)
 
                 guid = client.add_message(args.queue, args.content)
@@ -78,7 +90,9 @@ Examples:
 
             elif args.command == "delete":
                 if not args.guid:
-                    print("Error: --guid is required for delete command", file=sys.stderr)
+                    print(
+                        "Error: --guid is required for delete command", file=sys.stderr
+                    )
                     sys.exit(1)
 
                 client.delete_message(args.queue, args.guid)
