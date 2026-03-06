@@ -3,8 +3,8 @@ package protocol
 type CommandType byte
 
 const (
-	CmdEnsureQueue  CommandType = 0x01
-	CmdAddMessage   CommandType = 0x02
+	CmdEnsureQueue   CommandType = 0x01
+	CmdAddMessage    CommandType = 0x02
 	CmdPickupMessage CommandType = 0x03
 	CmdDeleteMessage CommandType = 0x04
 )

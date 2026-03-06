@@ -48,7 +48,10 @@ go build -o bbmb-client ./cmd
 
 ```bash
 cd python-client
-pip install -e .
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
 
 # Ensure queue exists
 python cli.py ensure-queue --queue=myqueue
@@ -165,11 +168,24 @@ python-client/
 ```bash
 # Run server tests
 cd server
-go test -v -coverprofile=coverage.out ./...
+go test -v ./...
+go test -v -coverprofile=coverage.out ./protocol ./queue ./metrics
+go tool cover -func=coverage.out
 
 # Run Go client tests
 cd go-client
 go test -v ./...
+
+# Run Python client checks
+cd python-client
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
+python -m pip install black mypy ruff
+black --check .
+mypy bbmb_client --ignore-missing-imports
+python -m unittest discover -s tests -p "test_*.py"
+ruff check .
 
 # Format check
 gofmt -s -l .

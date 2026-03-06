@@ -174,7 +174,7 @@ Define binary protocol over TCP (length-prefixed frames):
 - [x] Unit tests for queue operations
 - [x] Unit tests for message lifecycle (add, pickup, delete, timeout)
 - [x] Unit tests for protocol encoding/decoding
-- [x] Integration tests for TCP server
+- [ ] Integration tests for TCP server
 - [x] Test concurrent access to queues
 - [x] Test timeout requeue mechanism
 - [ ] Throughput/benchmark tests:
@@ -183,12 +183,12 @@ Define binary protocol over TCP (length-prefixed frames):
   - Latency measurements
 
 #### 5.2 Go Client Tests
-- [ ] Unit tests for protocol encoding/decoding
+- [x] Unit tests for protocol framing/decoding edge cases
 - [ ] Integration tests against running server
 - [ ] CLI tests
 
 #### 5.3 Python Client Tests
-- [ ] Unit tests for protocol encoding/decoding
+- [x] Unit tests for core client framing and error handling
 - [ ] Integration tests against running server
 - [ ] CLI tests
 
@@ -198,7 +198,7 @@ Define binary protocol over TCP (length-prefixed frames):
 - [x] **Server workflow:**
   - Run tests on PR
   - Check Go formatting/linting
-  - Run benchmarks
+  - Run coverage report
 - [x] **Go client workflow:**
   - Run tests on PR
   - Check Go formatting/linting
