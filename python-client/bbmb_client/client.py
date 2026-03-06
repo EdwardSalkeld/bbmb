@@ -62,6 +62,11 @@ class Client:
         self.port = int(parts[1]) if len(parts) > 1 else 9876
         self.sock: Optional[socket.socket] = None
 
+    def _require_socket(self) -> socket.socket:
+        if self.sock is None:
+            raise BBMBError("Client is not connected")
+        return self.sock
+
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.host, self.port))
@@ -79,11 +84,12 @@ class Client:
         self.close()
 
     def _write_frame(self, cmd_type: int, payload: bytes):
+        sock = self._require_socket()
         length = len(payload) + 1
         frame = struct.pack(">I", length)
         frame += struct.pack("B", cmd_type)
         frame += payload
-        self.sock.sendall(frame)
+        sock.sendall(frame)
 
     def _read_frame(self) -> tuple[int, bytes]:
         length_data = self._recv_exactly(4)
@@ -96,9 +102,10 @@ class Client:
         return cmd_type, payload
 
     def _recv_exactly(self, n: int) -> bytes:
+        sock = self._require_socket()
         data = b""
         while len(data) < n:
-            chunk = self.sock.recv(n - len(data))
+            chunk = sock.recv(n - len(data))
             if not chunk:
                 raise BBMBError("Connection closed by server")
             data += chunk
@@ -112,13 +119,13 @@ class Client:
         if offset + 4 > len(data):
             raise BBMBError("Unexpected end of data")
 
-        length = struct.unpack(">I", data[offset:offset+4])[0]
+        length = struct.unpack(">I", data[offset : offset + 4])[0]
         offset += 4
 
         if offset + length > len(data):
             raise BBMBError("Unexpected end of data")
 
-        string = data[offset:offset+length].decode("utf-8")
+        string = data[offset : offset + length].decode("utf-8")
         offset += length
 
         return string, offset
