@@ -19,6 +19,9 @@ type Collector struct {
 	messagesPickedUp  atomic.Uint64
 	messagesDeleted   atomic.Uint64
 	messagesTimedOut  atomic.Uint64
+	pickupWaits       atomic.Uint64
+	pickupWaitNanos   atomic.Uint64
+	emptyAfterWait    atomic.Uint64
 	activeConnections atomic.Int32
 }
 
@@ -43,6 +46,18 @@ func (c *Collector) IncrMessagesDeleted() {
 
 func (c *Collector) IncrMessagesTimedOut() {
 	c.messagesTimedOut.Add(1)
+}
+
+func (c *Collector) IncrPickupWaits() {
+	c.pickupWaits.Add(1)
+}
+
+func (c *Collector) ObservePickupWaitDuration(d time.Duration) {
+	c.pickupWaitNanos.Add(uint64(d.Nanoseconds()))
+}
+
+func (c *Collector) IncrEmptyAfterWait() {
+	c.emptyAfterWait.Add(1)
 }
 
 func (c *Collector) IncrActiveConnections() {
@@ -96,6 +111,18 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "# HELP bbmb_messages_timed_out_total Total messages timed out\n")
 	fmt.Fprintf(w, "# TYPE bbmb_messages_timed_out_total counter\n")
 	fmt.Fprintf(w, "bbmb_messages_timed_out_total %d\n", c.messagesTimedOut.Load())
+
+	fmt.Fprintf(w, "# HELP bbmb_pickup_waits_total Total pickup requests with long-poll wait enabled\n")
+	fmt.Fprintf(w, "# TYPE bbmb_pickup_waits_total counter\n")
+	fmt.Fprintf(w, "bbmb_pickup_waits_total %d\n", c.pickupWaits.Load())
+
+	fmt.Fprintf(w, "# HELP bbmb_pickup_wait_duration_seconds_total Total wall time spent in long-poll waits\n")
+	fmt.Fprintf(w, "# TYPE bbmb_pickup_wait_duration_seconds_total counter\n")
+	fmt.Fprintf(w, "bbmb_pickup_wait_duration_seconds_total %.6f\n", float64(c.pickupWaitNanos.Load())/1e9)
+
+	fmt.Fprintf(w, "# HELP bbmb_empty_after_wait_total Total long-poll pickup requests that returned empty\n")
+	fmt.Fprintf(w, "# TYPE bbmb_empty_after_wait_total counter\n")
+	fmt.Fprintf(w, "bbmb_empty_after_wait_total %d\n", c.emptyAfterWait.Load())
 
 	fmt.Fprintf(w, "# HELP bbmb_active_connections Current number of active connections\n")
 	fmt.Fprintf(w, "# TYPE bbmb_active_connections gauge\n")
