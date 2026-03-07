@@ -37,8 +37,11 @@ go build -o bbmb-client ./cmd
 # Add a message
 ./bbmb-client add --queue=myqueue --content="Hello, World!"
 
-# Pick up a message (30 second timeout)
+# Pick up a message (30 second visibility timeout, non-blocking)
 ./bbmb-client pickup --queue=myqueue --timeout=30
+
+# Long-poll for up to 5 seconds when queue is empty
+./bbmb-client pickup --queue=myqueue --timeout=30 --wait=5
 
 # Delete a message
 ./bbmb-client delete --queue=myqueue --guid=<message-id>
@@ -59,8 +62,11 @@ python cli.py ensure-queue --queue=myqueue
 # Add a message
 python cli.py add --queue=myqueue --content="Hello from Python!"
 
-# Pick up a message
+# Pick up a message (non-blocking)
 python cli.py pickup --queue=myqueue --timeout=30
+
+# Long-poll for up to 5 seconds when queue is empty
+python cli.py pickup --queue=myqueue --timeout=30 --wait=5
 
 # Delete a message
 python cli.py delete --queue=myqueue --guid=<message-id>
@@ -79,7 +85,8 @@ if err := c.Connect(); err != nil {
 defer c.Close()
 
 guid, err := c.AddMessage("myqueue", "Hello, World!")
-msg, err := c.PickupMessage("myqueue", 30)
+msg, err := c.PickupMessage("myqueue", 30)      // wait defaults to 0
+msg, err := c.PickupMessage("myqueue", 30, 5)   // wait up to 5 seconds
 err = c.DeleteMessage("myqueue", guid)
 ```
 
@@ -89,7 +96,8 @@ from bbmb_client import Client
 
 with Client("localhost:9876") as client:
     guid = client.add_message("myqueue", "Hello, World!")
-    msg = client.pickup_message("myqueue", timeout_seconds=30)
+    msg = client.pickup_message("myqueue", timeout_seconds=30)  # wait defaults to 0
+    msg = client.pickup_message("myqueue", timeout_seconds=30, wait_seconds=5)
     client.delete_message("myqueue", guid)
 ```
 
@@ -105,8 +113,19 @@ BBMB uses a simple binary protocol over TCP:
 
 1. **ENSURE_QUEUE (0x01)** - Create queue if it doesn't exist
 2. **ADD_MESSAGE (0x02)** - Add message to queue (returns GUID)
-3. **PICKUP_MESSAGE (0x03)** - Get message from queue with timeout
+3. **PICKUP_MESSAGE (0x03)** - Get message from queue with visibility timeout and optional long-poll wait
 4. **DELETE_MESSAGE (0x04)** - Delete message by GUID
+
+### Pickup Timeouts
+
+Pickup now has two independent timeout dimensions:
+
+- `timeout_seconds`: message visibility timeout after successful pickup. If not deleted before this timeout, the message becomes available again.
+- `wait_seconds`: long-poll wait timeout while queue is empty. If no message arrives before this timeout, pickup returns `empty`.
+
+Protocol compatibility:
+- Legacy pickup payloads (`queue_name + timeout_seconds`) remain supported and are interpreted as `wait_seconds=0`.
+- Extended pickup payloads (`queue_name + timeout_seconds + wait_seconds`) enable long polling.
 
 ### Message Lifecycle
 
@@ -128,6 +147,9 @@ Access Prometheus metrics at `http://localhost:9877/metrics`
 - `bbmb_messages_picked_up_total` - Total messages picked up
 - `bbmb_messages_deleted_total` - Total messages deleted
 - `bbmb_messages_timed_out_total` - Total messages timed out
+- `bbmb_pickup_waits_total` - Total long-poll pickup requests
+- `bbmb_pickup_wait_duration_seconds_total` - Total wall time spent waiting in long-poll pickup
+- `bbmb_empty_after_wait_total` - Total long-poll pickup requests that timed out empty
 - `bbmb_active_connections` - Current active connections
 
 **Per-queue metrics:**
@@ -160,7 +182,7 @@ python-client/
 - **In-memory only** (no persistence yet, architecture supports future addition)
 - **FIFO ordering** maintained even after timeout/requeue
 - **Atomic pickup** - messages locked while picked up
-- **Non-blocking pickup** - returns immediately if queue empty
+- **Long-poll pickup support** with backward-compatible wire format (`wait=0` remains non-blocking)
 - **SHA256 checksums** validated by server
 
 ## Run With systemd

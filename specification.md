@@ -19,7 +19,7 @@ there is no authentication of clients
 
 the api is to be tcp buffer based, not http.
 add should be content, queue name and a checksum
-pick up should just be queue name and timeout and return id, content and checksum
+pick up should be queue name + visibility timeout, and may include an optional long-poll wait timeout; it returns id, content and checksum
 delete should take id and queue and return some success status
 
 don't make anything about the server configurable yet. that can come later
