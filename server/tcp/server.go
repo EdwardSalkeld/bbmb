@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/edsalkeld/bbmb/server/metrics"
 	"github.com/edsalkeld/bbmb/server/protocol"
@@ -159,8 +160,20 @@ func (s *Server) handlePickupMessage(payload []byte) []byte {
 		})
 	}
 
+	waitStart := time.Time{}
+	if req.WaitSeconds > 0 {
+		s.collector.IncrPickupWaits()
+		waitStart = time.Now()
+	}
+
 	msg, err := q.PickupWithWait(req.TimeoutSeconds, req.WaitSeconds)
+	if req.WaitSeconds > 0 {
+		s.collector.ObservePickupWaitDuration(time.Since(waitStart))
+	}
 	if err == queue.ErrQueueEmpty {
+		if req.WaitSeconds > 0 {
+			s.collector.IncrEmptyAfterWait()
+		}
 		return protocol.EncodePickupMessageResponse(&protocol.PickupMessageResponse{
 			Status: protocol.StatusEmptyQueue,
 		})
