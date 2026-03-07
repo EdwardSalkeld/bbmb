@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 	"testing"
 )
@@ -34,5 +35,34 @@ func TestWriteReadFrameRoundTrip(t *testing.T) {
 	}
 	if !bytes.Equal(decodedPayload, payload) {
 		t.Fatalf("payload mismatch: expected %q, got %q", payload, decodedPayload)
+	}
+}
+
+func TestEncodePickupMessageLegacyShape(t *testing.T) {
+	payload := encodePickupMessage("q", 30)
+	if len(payload) != 9 {
+		t.Fatalf("expected payload length 9, got %d", len(payload))
+	}
+
+	timeout := binary.BigEndian.Uint32(payload[5:9])
+	if timeout != 30 {
+		t.Fatalf("expected timeout 30, got %d", timeout)
+	}
+}
+
+func TestEncodePickupMessageWithWaitSeconds(t *testing.T) {
+	payload := encodePickupMessage("q", 30, 5)
+	if len(payload) != 13 {
+		t.Fatalf("expected payload length 13, got %d", len(payload))
+	}
+
+	timeout := binary.BigEndian.Uint32(payload[5:9])
+	if timeout != 30 {
+		t.Fatalf("expected timeout 30, got %d", timeout)
+	}
+
+	wait := binary.BigEndian.Uint32(payload[9:13])
+	if wait != 5 {
+		t.Fatalf("expected wait 5, got %d", wait)
 	}
 }

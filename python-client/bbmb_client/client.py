@@ -167,9 +167,13 @@ class Client:
         else:
             raise BBMBError(f"Unexpected status: {status}")
 
-    def pickup_message(self, queue_name: str, timeout_seconds: int = 30) -> Message:
+    def pickup_message(
+        self, queue_name: str, timeout_seconds: int = 30, wait_seconds: int = 0
+    ) -> Message:
         payload = self._write_string(queue_name)
         payload += struct.pack(">I", timeout_seconds)
+        if wait_seconds > 0:
+            payload += struct.pack(">I", wait_seconds)
 
         self._write_frame(CommandType.PICKUP_MESSAGE, payload)
 

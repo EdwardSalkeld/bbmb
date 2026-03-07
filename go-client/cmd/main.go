@@ -21,7 +21,7 @@ func main() {
 	serverAddr := flag.String("server", "localhost:9876", "Server address")
 
 	var queueName, content, guid string
-	var timeoutSeconds int
+	var timeoutSeconds, waitSeconds int
 
 	switch command {
 	case "ensure-queue":
@@ -74,6 +74,7 @@ func main() {
 		fs := flag.NewFlagSet("pickup", flag.ExitOnError)
 		fs.StringVar(&queueName, "queue", "", "Queue name (required)")
 		timeoutStr := fs.String("timeout", "30", "Timeout in seconds")
+		waitStr := fs.String("wait", "0", "Long-poll wait in seconds")
 		fs.StringVar(serverAddr, "server", "localhost:9876", "Server address")
 		fs.Parse(os.Args[2:])
 
@@ -86,6 +87,10 @@ func main() {
 		if err != nil {
 			log.Fatalf("Invalid timeout value: %v", err)
 		}
+		waitSeconds, err = strconv.Atoi(*waitStr)
+		if err != nil {
+			log.Fatalf("Invalid wait value: %v", err)
+		}
 
 		c := client.NewClient(*serverAddr)
 		if err := c.Connect(); err != nil {
@@ -93,7 +98,7 @@ func main() {
 		}
 		defer c.Close()
 
-		msg, err := c.PickupMessage(queueName, timeoutSeconds)
+		msg, err := c.PickupMessage(queueName, timeoutSeconds, waitSeconds)
 		if err == client.ErrQueueEmpty {
 			fmt.Println("Queue is empty")
 			os.Exit(0)
@@ -110,6 +115,7 @@ func main() {
 		fs := flag.NewFlagSet("consume", flag.ExitOnError)
 		fs.StringVar(&queueName, "queue", "", "Queue name (required)")
 		timeoutStr := fs.String("timeout", "30", "Timeout in seconds")
+		waitStr := fs.String("wait", "0", "Long-poll wait in seconds")
 		fs.StringVar(serverAddr, "server", "localhost:9876", "Server address")
 		fs.Parse(os.Args[2:])
 
@@ -122,6 +128,10 @@ func main() {
 		if err != nil {
 			log.Fatalf("Invalid timeout value: %v", err)
 		}
+		waitSeconds, err = strconv.Atoi(*waitStr)
+		if err != nil {
+			log.Fatalf("Invalid wait value: %v", err)
+		}
 
 		c := client.NewClient(*serverAddr)
 		if err := c.Connect(); err != nil {
@@ -129,7 +139,7 @@ func main() {
 		}
 		defer c.Close()
 
-		msg, err := c.PickupMessage(queueName, timeoutSeconds)
+		msg, err := c.PickupMessage(queueName, timeoutSeconds, waitSeconds)
 		if err == client.ErrQueueEmpty {
 			fmt.Println("Queue is empty")
 			os.Exit(0)
@@ -184,8 +194,8 @@ func printUsage() {
 	fmt.Println("Commands:")
 	fmt.Println("  ensure-queue  --queue=<name> [--server=<addr>]")
 	fmt.Println("  add           --queue=<name> --content=<text> [--server=<addr>]")
-	fmt.Println("  pickup        --queue=<name> [--timeout=<seconds>] [--server=<addr>]")
-	fmt.Println("  consume       --queue=<name> [--timeout=<seconds>] [--server=<addr>]  (pickup + delete)")
+	fmt.Println("  pickup        --queue=<name> [--timeout=<seconds>] [--wait=<seconds>] [--server=<addr>]")
+	fmt.Println("  consume       --queue=<name> [--timeout=<seconds>] [--wait=<seconds>] [--server=<addr>]  (pickup + delete)")
 	fmt.Println("  delete        --queue=<name> --guid=<id> [--server=<addr>]")
 	fmt.Println()
 	fmt.Println("Default server: localhost:9876")

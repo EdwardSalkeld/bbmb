@@ -21,6 +21,7 @@ Examples:
   %(prog)s ensure-queue --queue myqueue
   %(prog)s add --queue myqueue --content "hello world"
   %(prog)s pickup --queue myqueue --timeout 30
+  %(prog)s pickup --queue myqueue --timeout 30 --wait 5
   %(prog)s consume --queue myqueue --timeout 30
   %(prog)s delete --queue myqueue --guid <message-id>
         """,
@@ -44,6 +45,12 @@ Examples:
         type=int,
         default=30,
         help="Timeout in seconds (for pickup command, default: 30)",
+    )
+    parser.add_argument(
+        "--wait",
+        type=int,
+        default=0,
+        help="Long-poll wait in seconds (for pickup/consume, default: 0)",
     )
 
     args = parser.parse_args()
@@ -70,7 +77,7 @@ Examples:
 
             elif args.command == "pickup":
                 try:
-                    msg = client.pickup_message(args.queue, args.timeout)
+                    msg = client.pickup_message(args.queue, args.timeout, args.wait)
                     print(f"GUID: {msg.guid}")
                     print(f"Content: {msg.content}")
                     print(f"Checksum: {msg.checksum}")
@@ -79,7 +86,7 @@ Examples:
 
             elif args.command == "consume":
                 try:
-                    msg = client.pickup_message(args.queue, args.timeout)
+                    msg = client.pickup_message(args.queue, args.timeout, args.wait)
                     print(f"GUID: {msg.guid}")
                     print(f"Content: {msg.content}")
                     print(f"Checksum: {msg.checksum}")
