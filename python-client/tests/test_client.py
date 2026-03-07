@@ -54,7 +54,9 @@ class ClientTests(unittest.TestCase):
         with self.assertRaises(BBMBError):
             client.pickup_message("q", 30, wait_seconds=5)
 
-        expected = client._write_string("q") + struct.pack(">I", 30) + struct.pack(">I", 5)
+        expected = (
+            client._write_string("q") + struct.pack(">I", 30) + struct.pack(">I", 5)
+        )
         self.assertEqual(expected, written["payload"])
 
 
