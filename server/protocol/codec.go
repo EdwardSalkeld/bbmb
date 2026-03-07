@@ -143,10 +143,23 @@ func DecodePickupMessage(payload []byte) (*PickupMessageRequest, error) {
 	}
 
 	timeoutSeconds := int(binary.BigEndian.Uint32(payload[offset : offset+4]))
+	offset += 4
+
+	waitSeconds := 0
+	switch len(payload) - offset {
+	case 0:
+		// Backward-compatible shape: queue_name + timeout_seconds
+	case 4:
+		// New shape: queue_name + timeout_seconds + wait_seconds
+		waitSeconds = int(binary.BigEndian.Uint32(payload[offset : offset+4]))
+	default:
+		return nil, io.ErrUnexpectedEOF
+	}
 
 	return &PickupMessageRequest{
 		QueueName:      queueName,
 		TimeoutSeconds: timeoutSeconds,
+		WaitSeconds:    waitSeconds,
 	}, nil
 }
 

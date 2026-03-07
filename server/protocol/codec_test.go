@@ -52,6 +52,7 @@ func TestEncodeDecodePickupMessage(t *testing.T) {
 	req := &PickupMessageRequest{
 		QueueName:      "test-queue",
 		TimeoutSeconds: 30,
+		WaitSeconds:    0,
 	}
 
 	buf := writeString(req.QueueName)
@@ -72,6 +73,41 @@ func TestEncodeDecodePickupMessage(t *testing.T) {
 	}
 	if decoded.TimeoutSeconds != req.TimeoutSeconds {
 		t.Errorf("Expected timeout %d, got %d", req.TimeoutSeconds, decoded.TimeoutSeconds)
+	}
+	if decoded.WaitSeconds != req.WaitSeconds {
+		t.Errorf("Expected wait %d, got %d", req.WaitSeconds, decoded.WaitSeconds)
+	}
+}
+
+func TestDecodePickupMessageWithWaitSeconds(t *testing.T) {
+	req := &PickupMessageRequest{
+		QueueName:      "test-queue",
+		TimeoutSeconds: 30,
+		WaitSeconds:    5,
+	}
+
+	buf := writeString(req.QueueName)
+	timeoutBuf := make([]byte, 4)
+	timeoutBuf[3] = 30
+	buf = append(buf, timeoutBuf...)
+
+	waitBuf := make([]byte, 4)
+	waitBuf[3] = 5
+	buf = append(buf, waitBuf...)
+
+	decoded, err := DecodePickupMessage(buf)
+	if err != nil {
+		t.Fatalf("Failed to decode: %v", err)
+	}
+
+	if decoded.QueueName != req.QueueName {
+		t.Errorf("Expected queue name '%s', got '%s'", req.QueueName, decoded.QueueName)
+	}
+	if decoded.TimeoutSeconds != req.TimeoutSeconds {
+		t.Errorf("Expected timeout %d, got %d", req.TimeoutSeconds, decoded.TimeoutSeconds)
+	}
+	if decoded.WaitSeconds != req.WaitSeconds {
+		t.Errorf("Expected wait %d, got %d", req.WaitSeconds, decoded.WaitSeconds)
 	}
 }
 
