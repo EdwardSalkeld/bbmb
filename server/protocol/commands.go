@@ -44,6 +44,7 @@ type AddMessageResponse struct {
 type PickupMessageRequest struct {
 	QueueName      string
 	TimeoutSeconds int
+	WaitSeconds    int
 }
 
 type PickupMessageResponse struct {
