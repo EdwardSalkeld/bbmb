@@ -111,8 +111,8 @@ type Message struct {
 	Checksum string
 }
 
-func (c *Client) PickupMessage(queueName string, timeoutSeconds int) (*Message, error) {
-	payload := encodePickupMessage(queueName, timeoutSeconds)
+func (c *Client) PickupMessage(queueName string, timeoutSeconds int, waitSeconds ...int) (*Message, error) {
+	payload := encodePickupMessage(queueName, timeoutSeconds, waitSeconds...)
 
 	if err := writeFrame(c.conn, CmdPickupMessage, payload); err != nil {
 		return nil, err

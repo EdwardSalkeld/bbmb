@@ -105,11 +105,18 @@ func encodeAddMessage(queueName, content, checksum string) []byte {
 	return buf
 }
 
-func encodePickupMessage(queueName string, timeoutSeconds int) []byte {
+func encodePickupMessage(queueName string, timeoutSeconds int, waitSeconds ...int) []byte {
 	buf := writeString(queueName)
 	timeoutBuf := make([]byte, 4)
 	binary.BigEndian.PutUint32(timeoutBuf, uint32(timeoutSeconds))
 	buf = append(buf, timeoutBuf...)
+
+	if len(waitSeconds) > 0 && waitSeconds[0] > 0 {
+		waitBuf := make([]byte, 4)
+		binary.BigEndian.PutUint32(waitBuf, uint32(waitSeconds[0]))
+		buf = append(buf, waitBuf...)
+	}
+
 	return buf
 }
 
