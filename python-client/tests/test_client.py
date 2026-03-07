@@ -1,7 +1,12 @@
 import unittest
 import struct
 
-from bbmb_client.client import BBMBError, Client, MAX_MESSAGE_SIZE, MessageTooLargeError
+from bbmb_client.client import (
+    BBMBError,
+    Client,
+    MAX_MESSAGE_SIZE,
+    MessageTooLargeError,
+)
 
 
 class ClientTests(unittest.TestCase):
