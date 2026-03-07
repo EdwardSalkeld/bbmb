@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"sync"
 	"testing"
 	"time"
 )
@@ -141,5 +142,82 @@ func TestQueueConcurrency(t *testing.T) {
 
 	if q.Size() < 50 {
 		t.Error("Queue should have at least 50 messages after concurrent operations")
+	}
+}
+
+func TestQueuePickupWithWaitWakesOnAdd(t *testing.T) {
+	q := NewQueue("test-queue")
+
+	done := make(chan *Message, 1)
+	go func() {
+		msg, err := q.PickupWithWait(10, 1)
+		if err != nil {
+			done <- nil
+			return
+		}
+		done <- msg
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	msg, _ := NewMessage("hello", "check")
+	q.Add(msg)
+
+	select {
+	case picked := <-done:
+		if picked == nil {
+			t.Fatal("expected pickup to succeed after add")
+		}
+		if picked.ID != msg.ID {
+			t.Fatalf("expected message %s, got %s", msg.ID, picked.ID)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for pickup")
+	}
+}
+
+func TestQueuePickupWithWaitTimesOut(t *testing.T) {
+	q := NewQueue("test-queue")
+
+	start := time.Now()
+	_, err := q.PickupWithWait(10, 1)
+	elapsed := time.Since(start)
+	if err != ErrQueueEmpty {
+		t.Fatalf("expected ErrQueueEmpty, got %v", err)
+	}
+	if elapsed < 900*time.Millisecond {
+		t.Fatalf("pickup returned too quickly: %v", elapsed)
+	}
+}
+
+func TestQueuePickupWithWaitMultipleWaiters(t *testing.T) {
+	q := NewQueue("test-queue")
+
+	const waiters = 3
+	var wg sync.WaitGroup
+	wg.Add(waiters)
+
+	results := make(chan error, waiters)
+	for i := 0; i < waiters; i++ {
+		go func() {
+			defer wg.Done()
+			_, err := q.PickupWithWait(10, 2)
+			results <- err
+		}()
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	for i := 0; i < waiters; i++ {
+		msg, _ := NewMessage("message", "check")
+		q.Add(msg)
+	}
+
+	wg.Wait()
+	close(results)
+
+	for err := range results {
+		if err != nil {
+			t.Fatalf("expected waiter to receive message, got err %v", err)
+		}
 	}
 }
