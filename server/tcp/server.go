@@ -159,7 +159,7 @@ func (s *Server) handlePickupMessage(payload []byte) []byte {
 		})
 	}
 
-	msg, err := q.Pickup(req.TimeoutSeconds)
+	msg, err := q.PickupWithWait(req.TimeoutSeconds, req.WaitSeconds)
 	if err == queue.ErrQueueEmpty {
 		return protocol.EncodePickupMessageResponse(&protocol.PickupMessageResponse{
 			Status: protocol.StatusEmptyQueue,
