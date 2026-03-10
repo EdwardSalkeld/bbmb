@@ -253,6 +253,12 @@ GitHub Actions workflows run on every PR:
 - Go client: build, test, format check, vet
 - Python client: multi-version test, black, mypy, ruff
 
+Pushes to `main` also trigger a server release workflow that:
+- Runs the server test suite
+- Builds `bbmb-server-linux-amd64`
+- Uploads the binary, checksum, and tarball as workflow artifacts
+- Publishes a GitHub prerelease tagged `server-main-<short-sha>` with those assets attached
+
 ## License
 
 See specification.md for project details.
