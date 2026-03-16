@@ -51,9 +51,9 @@ jobs:
     - name: Compute release metadata
       id: metadata
       run: |
-        short_sha="${GITHUB_SHA::7}"
-        echo "tag=server-main-${short_sha}" >> "$GITHUB_OUTPUT"
-        echo "name=Server main build ${short_sha}" >> "$GITHUB_OUTPUT"
+        release_number="${GITHUB_RUN_NUMBER}"
+        echo "tag=v${release_number}" >> "$GITHUB_OUTPUT"
+        echo "name=BBMB v${release_number}" >> "$GITHUB_OUTPUT"
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v2
