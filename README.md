@@ -257,7 +257,7 @@ Pushes to `main` also trigger a server release workflow that:
 - Runs the server test suite
 - Builds `bbmb-server-linux-amd64`
 - Uploads the binary, checksum, and tarball as workflow artifacts
-- Publishes a GitHub prerelease tagged `server-main-<short-sha>` with those assets attached
+- Publishes a GitHub release tagged `v<run-number>` with those assets attached
 
 ## License
 
