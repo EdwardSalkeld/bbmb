@@ -10,6 +10,8 @@ PY_CLIENT_DIR := python-client
 
 SERVER_BIN := $(SERVER_DIR)/bbmb-server
 GO_CLIENT_BIN := $(GO_CLIENT_DIR)/bbmb-client
+SERVER_GOFLAGS := -trimpath
+SERVER_LDFLAGS := -s -w
 
 help:
 	@echo "Available targets:"
@@ -28,16 +30,16 @@ help:
 	@echo "  clean                       Remove build artifacts"
 
 server-build:
-	cd $(SERVER_DIR) && go build -o bbmb-server .
+	cd $(SERVER_DIR) && go build $(SERVER_GOFLAGS) -ldflags='$(SERVER_LDFLAGS)' -o bbmb-server .
 
 server-build-portable:
-	cd $(SERVER_DIR) && CGO_ENABLED=0 go build -o bbmb-server .
+	cd $(SERVER_DIR) && CGO_ENABLED=0 go build $(SERVER_GOFLAGS) -ldflags='$(SERVER_LDFLAGS)' -o bbmb-server .
 
 server-build-linux-amd64:
-	cd $(SERVER_DIR) && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bbmb-server-linux-amd64 .
+	cd $(SERVER_DIR) && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(SERVER_GOFLAGS) -ldflags='$(SERVER_LDFLAGS)' -o bbmb-server-linux-amd64 .
 
 server-build-linux-arm64:
-	cd $(SERVER_DIR) && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o bbmb-server-linux-arm64 .
+	cd $(SERVER_DIR) && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build $(SERVER_GOFLAGS) -ldflags='$(SERVER_LDFLAGS)' -o bbmb-server-linux-arm64 .
 
 server-run:
 	cd $(SERVER_DIR) && ./bbmb-server
