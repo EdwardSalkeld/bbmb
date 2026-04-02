@@ -19,6 +19,9 @@ A lightweight, high-performance TCP-based message broker with FIFO queues, writt
 cd server
 go build -o bbmb-server .
 ./bbmb-server
+
+# Optional: override the default listen ports
+./bbmb-server --port=19876 --metrics-port=19877
 ```
 
 The server listens on:
@@ -216,6 +219,10 @@ journalctl -u bbmb -f
 The service binds to:
 - TCP `:9876` for broker traffic
 - HTTP `:9877` for Prometheus metrics
+
+To override those defaults, add `--port=<port>` and/or
+`--metrics-port=<port>` to the `ExecStart=` command in your systemd unit or
+override file.
 
 ## Testing
 
