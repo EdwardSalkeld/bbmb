@@ -27,7 +27,7 @@ jobs:
 
     - name: Build
       working-directory: ./server
-      run: go build -v .
+      run: go build -trimpath -ldflags="-s -w" -v .
 
     - name: Run tests
       working-directory: ./server

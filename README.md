@@ -17,7 +17,7 @@ A lightweight, high-performance TCP-based message broker with FIFO queues, writt
 
 ```bash
 cd server
-go build -o bbmb-server .
+go build -trimpath -ldflags="-s -w" -o bbmb-server .
 ./bbmb-server
 
 # Optional: override the default listen ports
@@ -195,7 +195,7 @@ Use the included unit file at `deploy/systemd/bbmb.service`.
 ```bash
 # Build and install the server binary
 cd server
-go build -o bbmb-server .
+go build -trimpath -ldflags="-s -w" -o bbmb-server .
 sudo install -m 0755 bbmb-server /usr/local/bin/bbmb-server
 
 # Create runtime user and state directory
