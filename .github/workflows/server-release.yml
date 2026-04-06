@@ -8,10 +8,13 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/bbmb
 
     steps:
     - uses: actions/checkout@v4
@@ -54,6 +57,35 @@ jobs:
         release_number="${GITHUB_RUN_NUMBER}"
         echo "tag=v${release_number}" >> "$GITHUB_OUTPUT"
         echo "name=BBMB v${release_number}" >> "$GITHUB_OUTPUT"
+        echo "sha_tag=sha-$(printf '%s' "${GITHUB_SHA}" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Normalize image name
+      run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
+
+    - name: Build runtime image
+      run: docker build -t "${IMAGE_NAME}:${{ steps.metadata.outputs.tag }}" .
+
+    - name: Tag runtime image
+      run: |
+        docker tag "${IMAGE_NAME}:${{ steps.metadata.outputs.tag }}" "${IMAGE_NAME}:${{ steps.metadata.outputs.sha_tag }}"
+        if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          docker tag "${IMAGE_NAME}:${{ steps.metadata.outputs.tag }}" "${IMAGE_NAME}:latest"
+        fi
+
+    - name: Push runtime image
+      run: |
+        docker push "${IMAGE_NAME}:${{ steps.metadata.outputs.tag }}"
+        docker push "${IMAGE_NAME}:${{ steps.metadata.outputs.sha_tag }}"
+        if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          docker push "${IMAGE_NAME}:latest"
+        fi
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v2

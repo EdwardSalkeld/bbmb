@@ -263,6 +263,7 @@ GitHub Actions workflows run on every PR:
 Pushes to `main` also trigger a server release workflow that:
 - Runs the server test suite
 - Builds `bbmb-server-linux-amd64`
+- Builds and pushes `ghcr.io/<owner>/bbmb` from that release binary
 - Uploads the binary, checksum, and tarball as workflow artifacts
 - Publishes a GitHub release tagged `v<run-number>` with those assets attached
 
