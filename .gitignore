@@ -1,6 +1,8 @@
 # Build artifacts
 /go-client/bbmb-client
 /server/bbmb-server
+/server/bbmb-server-linux-amd64
+/server/bbmb-server-linux-arm64
 /server/server
 /server/coverage.out
 
