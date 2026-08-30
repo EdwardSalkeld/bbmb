@@ -1,3 +1,3 @@
-from .client import Client, Message, BBMBError, QueueEmptyError, NotFoundError
+from .client import BBMBError, Client, Message, NotFoundError, QueueEmptyError
 
-__all__ = ["Client", "Message", "BBMBError", "QueueEmptyError", "NotFoundError"]
+__all__ = ["BBMBError", "Client", "Message", "NotFoundError", "QueueEmptyError"]
