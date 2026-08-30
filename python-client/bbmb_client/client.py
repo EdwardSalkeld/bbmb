@@ -1,7 +1,6 @@
+import hashlib
 import socket
 import struct
-import hashlib
-from typing import Optional
 from dataclasses import dataclass
 
 
@@ -60,7 +59,7 @@ class Client:
         parts = address.split(":")
         self.host = parts[0]
         self.port = int(parts[1]) if len(parts) > 1 else 9876
-        self.sock: Optional[socket.socket] = None
+        self.sock: socket.socket | None = None
 
     def _require_socket(self) -> socket.socket:
         if self.sock is None:
