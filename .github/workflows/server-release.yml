@@ -17,10 +17,10 @@ jobs:
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/bbmb
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
         go-version: '1.26.x'
 
@@ -42,7 +42,7 @@ jobs:
         tar -czf bbmb-server-linux-amd64.tar.gz bbmb-server-linux-amd64 bbmb-server-linux-amd64.sha256
 
     - name: Upload workflow artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: bbmb-server-linux-amd64
         path: |
@@ -88,7 +88,7 @@ jobs:
         fi
 
     - name: Create GitHub release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ steps.metadata.outputs.tag }}
         name: ${{ steps.metadata.outputs.name }}
